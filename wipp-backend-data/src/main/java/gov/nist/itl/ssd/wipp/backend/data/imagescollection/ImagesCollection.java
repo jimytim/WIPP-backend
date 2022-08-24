@@ -51,8 +51,43 @@ public class ImagesCollection extends Data {
     private String sourceCatalog;
 
     private String sourceBackendImport;
-    
+
     private ImagesCollectionImportMethod importMethod;
+
+    private String s3BucketName;
+    private String s3FolderName;
+    private String s3AccessKeyID;
+    private String s3SecretAccessKey;
+
+    private String gdriveCode;
+    private String gdriveFolderName;
+
+    public String getS3BucketName() {
+        return s3BucketName;
+    }
+    public void setS3BucketName(String s3BucketName) {
+        this.s3BucketName = s3BucketName;
+    }
+
+    public String getS3FolderName() { return s3FolderName; }
+
+    public void setS3FolderName(String s3FolderName) { this.s3FolderName = s3FolderName;}
+
+    public String getS3AccessKeyID() { return s3AccessKeyID; }
+
+    public void setS3AccessKeyID(String s3AccessKeyID) { this.s3AccessKeyID = s3AccessKeyID; }
+
+    public String getS3SecretAccessKey() { return s3SecretAccessKey;}
+
+    public void setS3SecretAccessKey(String s3SecretAccessKey) { this.s3SecretAccessKey = s3SecretAccessKey; }
+
+    public String getGdriveCode() { return gdriveCode; }
+
+    public void setGdriveCode(String gdriveCode) { this.gdriveCode = gdriveCode; }
+
+    public String getGdriveFolderName() { return gdriveFolderName; }
+
+    public void setGdriveFolderName(String gdriveFolderName) { this.gdriveFolderName = gdriveFolderName; }
 
     private boolean locked;
 
@@ -213,6 +248,7 @@ public class ImagesCollection extends Data {
 		this.importMethod = importMethod;
 	}
 	
-    public enum ImagesCollectionImportMethod {UPLOADED, JOB, CATALOG, BACKEND_IMPORT}
+    public enum ImagesCollectionImportMethod {UPLOADED, JOB, CATALOG, BACKEND_IMPORT, S3_IMPORT, GDRIVE_IMPORT}
+
 
 }

@@ -98,6 +98,12 @@ public class CoreConfig {
     @Value("${storage.local.import}")
     private String localImportFolder;
 
+    @Value("${storage.cloud.google}")
+    private String cloudGoogleFolder;
+
+    @Value("${storage.cloud.amazon}")
+    private String cloudAmazonFolder;
+
     @Value("${ome.converter.threads:2}")
     private int omeConverterThreads;
     
@@ -210,6 +216,14 @@ public class CoreConfig {
 
     public String getLocalImportFolder() {
         return localImportFolder;
+    }
+
+    public String getCloudGoogleFolder() {
+        return cloudGoogleFolder;
+    }
+
+    public String getCloudAmazonFolder() {
+        return cloudAmazonFolder;
     }
     
     public int getFetchingPixelsMax() {

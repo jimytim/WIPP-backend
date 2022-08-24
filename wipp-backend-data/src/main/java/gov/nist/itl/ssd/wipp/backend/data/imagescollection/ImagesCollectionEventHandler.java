@@ -61,9 +61,16 @@ public class ImagesCollectionEventHandler {
     @Autowired
     private ImagesCollectionLocalImporter localImporter;
 
+    @Autowired
+    private ImagesCollectionS3Importer s3Importer;
+
+    @Autowired
+    private ImagesCollectionGDriveImporter gDriveImporter;
+
     @PreAuthorize("isAuthenticated()")
     @HandleBeforeCreate
     public void handleBeforeCreate(ImagesCollection imagesCollection) {
+
     	// Assert imagesCollection name is unique
         imagesCollectionLogic.assertCollectionNameUnique(
                 imagesCollection.getName());
@@ -96,6 +103,14 @@ public class ImagesCollectionEventHandler {
     public void handleAfterCreate(ImagesCollection imagesCollection) {
         if(imagesCollection.getImportMethod().equals(ImagesCollectionImportMethod.BACKEND_IMPORT)) {
             localImporter.importFromLocalFolder(imagesCollection);
+        }
+
+        if(imagesCollection.getImportMethod().equals(ImagesCollectionImportMethod.S3_IMPORT)) {
+            s3Importer.importFromS3Folder(imagesCollection);
+        }
+
+        if(imagesCollection.getImportMethod().equals(ImagesCollectionImportMethod.GDRIVE_IMPORT)) {
+            gDriveImporter.importFromGDriveFolder(imagesCollection);
         }
     }
     @HandleBeforeSave
