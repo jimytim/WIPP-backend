@@ -49,6 +49,9 @@ public class CoreConfig {
 
     @Value("${workflow.tolerations}")
     private String workflowTolerations;
+
+    @Value("${workflow.pluginHardwareRequirements.enabled}")
+    private boolean workflowPluginHardwareRequirementsEnabled;
     
     @Value("${kube.wippdata.pvc}")
     private String wippDataPVCName;
@@ -192,6 +195,10 @@ public class CoreConfig {
 
     public String getWorkflowTolerations() {
         return workflowTolerations;
+    }
+
+    public boolean isWorkflowPluginHardwareRequirementsEnabled() {
+        return workflowPluginHardwareRequirementsEnabled;
     }
 
 	public String getWippDataPVCName() {
