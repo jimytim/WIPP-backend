@@ -34,6 +34,7 @@ import loci.common.services.DependencyException;
 import loci.common.services.ServiceException;
 import loci.formats.FormatException;
 
+import gov.nist.itl.ssd.wipp.backend.data.utils.gdrive.GDrive;
 
 /**
 *
@@ -99,6 +100,74 @@ public class ImageConversionService extends FileUploadBase{
 		omeConverterExecutor.submit(() -> doSubmit(
 				collectionId, image, outputFileName, tempPath, outputPath));
 	}
+
+	public void submitImageToExtractor(GDrive userDrive, Image image, com.google.api.services.drive.model.File file) {
+		File tempUploadDir = getTempUploadDir(image.getImagesCollection());
+
+		String collectionId = image.getImagesCollection();
+
+		File uploadDir = getUploadDir(image.getImagesCollection());
+		uploadDir.mkdirs();
+
+		String imgName = image.getFileName();
+		Path tempPath = new File(tempUploadDir, image.getOriginalFileName()).toPath();
+		String outputFileName;
+		boolean isOmeTiff = imgName.endsWith(".ome.tif");
+
+		// handle ome tiff images file names
+		if(!isOmeTiff){
+			outputFileName = FilenameUtils.getBaseName(imgName) + ".ome.tif";
+		} else {
+			outputFileName = imgName;
+		}
+
+		Path outputPath = new File(uploadDir, outputFileName).toPath();
+
+		omeConverterExecutor.submit(() -> doSubmit(
+				collectionId, image, outputFileName, tempPath, outputPath, userDrive, file));
+
+	}
+
+	public void doSubmit(String collectionId, Image image, String outputFileName,
+						 Path tempPath, Path outputPath,
+						 GDrive userDrive, com.google.api.services.drive.model.File file) {
+
+		try {
+			LOG.log(Level.INFO,
+					"Starting downloading image {0} of collection {1}",
+					new Object[]{image.getFileName(), collectionId});
+			File downloadFolder = tempPath.getParent().toFile();
+			userDrive.credential.refreshToken();
+			userDrive.downloadFile(file, downloadFolder);
+			LOG.log(Level.INFO,
+					"Done downloading image {0} of collection {1}",
+					new Object[]{image.getFileName(), collectionId});
+
+			LOG.log(Level.INFO,
+					"Starting extracting image {0} of collection {1}",
+					new Object[]{image.getFileName(), collectionId});
+			convertToTiledOmeTiff(tempPath, outputPath);
+			Files.delete(tempPath);
+			image.setFileName(outputFileName);
+			image.setFileSize(getPathSize(outputPath));
+			image.setImporting(false);
+			imageRepository.save(image);
+			imagesCollectionRepository.updateImagesCaches(collectionId);
+			LOG.log(Level.INFO,
+					"Done extracting image {0} of collection {1}",
+					new Object[]{image.getFileName(), collectionId});
+		} catch (Exception ex) {
+			LOG.log(Level.WARNING, "Error downloading/extracting image "
+							+ image.getFileName() + " of collection " + collectionId,
+					ex);
+			// Update image
+			image.setImporting(false);
+			image.setImportError("Can not download/extract image.");
+			imageRepository.save(image);
+			imagesCollectionRepository.updateImagesCaches(collectionId);
+		}
+	}
+
 
 	public void doSubmit(String collectionId, Image image, String outputFileName,
 			Path tempPath, Path outputPath) {

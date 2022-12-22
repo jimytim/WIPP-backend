@@ -17,6 +17,9 @@ import software.amazon.awssdk.services.s3.model.S3Object;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,37 +49,54 @@ public class ImagesCollectionS3Importer {
     private ImageConversionService imageConversionService;
 
     protected void importFromS3Folder(ImagesCollection imagesCollection) {
+        try {
+            String imagesCollectionId = imagesCollection.getId();
+            String credential_path = config.getCloudAmazonFolder();
+            File downloadFolder = imageHandler.getTempFilesFolder(imagesCollection.getId());
+            String downloadFolderPath = downloadFolder.getPath();
+            downloadFolder.mkdirs();
 
-        String credential_path = config.getCloudAmazonFolder();
-        File downloadFolder = imageHandler.getTempFilesFolder(imagesCollection.getId());
-        downloadFolder.mkdirs();
+            LOGGER.log(Level.INFO, "Credentials: " + credential_path);
+            LOGGER.log(Level.INFO, "DownloadFolder: " + downloadFolder);
 
-        LOGGER.log(Level.INFO, "Credentials: " + credential_path);
-        LOGGER.log(Level.INFO, "DownloadFolder: " + downloadFolder);
+            S3 userS3 = new S3(SecurityContextHolder.getContext().getAuthentication().getName(),
+                               imagesCollection.getS3BucketName(),
+                               imagesCollection.getS3AccessKeyID(),
+                               imagesCollection.getS3SecretAccessKey());
 
-        S3 userS3 = new S3(SecurityContextHolder.getContext().getAuthentication().getName(),
-                           imagesCollection.getS3BucketName(),
-                           imagesCollection.getS3AccessKeyID(),
-                           imagesCollection.getS3SecretAccessKey());
 
-        String folderPath = imagesCollection.getS3FolderName();
-        List<S3Object> objects = userS3.listFolder(folderPath);
+            String folderPath = imagesCollection.getS3FolderName();
+            List<S3Object> objects = userS3.listFolder(folderPath);
+            List<String> fileKeys = objects.stream().map(S3Object::key).collect(toList());
+    //        userS3.downloadFiles(fileKeys, downloadFolder.getPath(), folderPath);
 
-        List<String> fileKeys = objects.subList(1, objects.size()).stream().map(S3Object::key).collect(toList());
-        userS3.downloadFiles(fileKeys, downloadFolder.getPath(), folderPath);
+            for (String key : fileKeys) {
+                String fileName = key.substring(folderPath.length());
+                Path destination = Paths.get(downloadFolderPath, fileName);
+                userS3.downloadFile(key, destination);
+                Image image = new Image(imagesCollectionId,
+                        fileName,
+                        fileName,
+                        Files.size(destination),
+                        true);
+                imageRepository.save(image);
+                imagesCollectionRepository.updateImagesCaches(imagesCollectionId);
+                imageConversionService.submitImageToExtractor(image);
+            }
 
-        // Register images in collection
-        imageHandler.addAllInDbFromFolder(imagesCollection.getId(), downloadFolder.getPath());
-        List<Image> images = imageRepository.findByImagesCollection(imagesCollection.getId());
+            // Register images in collection
+//            imageHandler.addAllInDbFromFolder(imagesCollection.getId(), downloadFolder.getPath());
+//            imagesCollectionRepository.updateImagesCaches(imagesCollectionId);
+//            List<Image> images = imageRepository.findByImagesCollection(imagesCollection.getId());
 
-        // Start conversion
-        for (Image image : images) {
-            imageConversionService.submitImageToExtractor(image);
+            // Start conversion
+//            for (Image image : images) {
+//                imageConversionService.submitImageToExtractor(image);
+//            }
+
+        } catch (IOException ex) {
+            throw new ClientException("Error while importing data.");
         }
-
-//        } catch (IOException ex) {
-//            throw new ClientException("Error while importing data.");
-//        }
     }
 }
 

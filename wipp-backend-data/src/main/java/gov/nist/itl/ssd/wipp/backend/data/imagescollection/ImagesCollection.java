@@ -62,6 +62,10 @@ public class ImagesCollection extends Data {
     private String gdriveCode;
     private String gdriveFolderName;
 
+    private String gdriveFileExtensions;
+
+    private boolean gdriveRecursive;
+
     public String getS3BucketName() {
         return s3BucketName;
     }
@@ -88,6 +92,14 @@ public class ImagesCollection extends Data {
     public String getGdriveFolderName() { return gdriveFolderName; }
 
     public void setGdriveFolderName(String gdriveFolderName) { this.gdriveFolderName = gdriveFolderName; }
+
+    public String getGdriveFileExtensions() { return gdriveFileExtensions; }
+
+    public void setGdriveFileExtensions(String gdriveFileExtensions) { this.gdriveFileExtensions = gdriveFileExtensions; }
+
+    public boolean getGdriveRecursive() { return gdriveRecursive; }
+
+    public void setGdriveRecursive(boolean gdriveRecursive) { this.gdriveRecursive = gdriveRecursive; }
 
     private boolean locked;
 

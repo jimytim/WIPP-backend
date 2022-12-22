@@ -20,6 +20,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -57,10 +58,10 @@ public class S3 {
         return s;
     }
 
-    public void downloadFile(String bucketName, String keyName, Path destination) {
-        System.out.format("Downloading %s from S3 bucket %s...\n", keyName, bucketName);
+    public void downloadFile(String keyName, Path destination) {
+        System.out.format("Downloading %s from S3 bucket %s...\n", keyName, this.bucketName);
         try {
-            GetObjectRequest request = GetObjectRequest.builder().bucket(bucketName).key(keyName).build();
+            GetObjectRequest request = GetObjectRequest.builder().bucket(this.bucketName).key(keyName).build();
             GetObjectResponse getObjectResponse = this.s3.getObject(request, destination);
         } catch (AwsServiceException e) {
             LOGGER.log(Level.SEVERE, "AWS Service Error " + e.getMessage());
@@ -68,18 +69,23 @@ public class S3 {
     }
 
     public final List<S3Object> listFolder(String folderPath) {
+        ArrayList<S3Object> fileObjects = new ArrayList<>();
         ListObjectsV2Request req = ListObjectsV2Request.builder()
                 .bucket(this.bucketName)
                 .prefix(folderPath)
                 .build();
         ListObjectsV2Response res = this.s3.listObjectsV2(req);
-        return res.contents();
+        List<S3Object> objects = res.contents();
+        for (S3Object obj : objects) {
+            if (!obj.key().equals(folderPath)) { fileObjects.add(obj); }
+        }
+        return fileObjects;
     }
 
     public final void downloadFiles(List<String> fileKeys, String destinationFolder, String folderName) {
         for (String key : fileKeys) {
             Path destination = Paths.get(destinationFolder, removePrefix(key, folderName));
-            downloadFile(this.bucketName, key, destination);
+            downloadFile(key, destination);
         }
 
     }
