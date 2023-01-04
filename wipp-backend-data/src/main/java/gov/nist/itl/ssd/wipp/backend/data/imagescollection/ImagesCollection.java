@@ -11,6 +11,7 @@
  */
 package gov.nist.itl.ssd.wipp.backend.data.imagescollection;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import gov.nist.itl.ssd.wipp.backend.core.model.data.Data;
@@ -77,10 +78,12 @@ public class ImagesCollection extends Data {
 
     public void setS3FolderName(String s3FolderName) { this.s3FolderName = s3FolderName;}
 
+    @JsonIgnore
     public String getS3AccessKeyID() { return s3AccessKeyID; }
 
     public void setS3AccessKeyID(String s3AccessKeyID) { this.s3AccessKeyID = s3AccessKeyID; }
 
+    @JsonIgnore
     public String getS3SecretAccessKey() { return s3SecretAccessKey;}
 
     public void setS3SecretAccessKey(String s3SecretAccessKey) { this.s3SecretAccessKey = s3SecretAccessKey; }
