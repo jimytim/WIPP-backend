@@ -437,6 +437,7 @@ public class GDrive {
                     for (String ext : extFilters) {
                         if (filename.endsWith(ext)) {
                             results.add(file);
+                            break;
                         }
                     }
                 }

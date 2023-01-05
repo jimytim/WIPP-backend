@@ -100,21 +100,25 @@ public class ImagesCollectionEventHandler {
 
 
         if(imagesCollection.getImportMethod().equals(ImagesCollectionImportMethod.S3_IMPORT)) {
-            // Check if folder path is not empty
-            if (imagesCollection.getS3FolderName() == null) {
+            // Check if prefix is not empty
+            String folder = imagesCollection.getS3FolderName();
+            if (StringUtils.isEmpty(folder)) {
                 throw new ClientException("Folder path is empty");
+            } else if (!folder.endsWith("/")) {
+                throw new ClientException("Please make sure the folder path ends with the character '/'.");
+            } else if (folder.contains("\\")) {
+                throw new ClientException("The folder path should not contains escape characters '\\'. Use '/' as a delimiter.");
             }
         }
 
         if(imagesCollection.getImportMethod().equals(ImagesCollectionImportMethod.GDRIVE_IMPORT)) {
             // Check if folder path is not empty
             String folder = imagesCollection.getGdriveFolderName();
-            if (folder == null | folder.equals("")) {
+            if (StringUtils.isEmpty(folder)) {
                 throw new ClientException("Folder path is empty");
             } else if (folder.contains("\\")) {
                 throw new ClientException("The folder path should not contains escape characters '\\'. Use '/' as a delimiter.");
             }
-
         }
     }
 

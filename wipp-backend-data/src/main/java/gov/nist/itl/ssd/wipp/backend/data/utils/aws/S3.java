@@ -12,6 +12,8 @@
 
 package gov.nist.itl.ssd.wipp.backend.data.utils.aws;
 
+import com.google.api.services.drive.model.File;
+import gov.nist.itl.ssd.wipp.backend.data.utils.gdrive.GDriveException;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.*;
@@ -24,6 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static java.util.stream.Collectors.toList;
 
 
 public class S3 {
@@ -68,18 +72,76 @@ public class S3 {
         }
     }
 
-    public final List<S3Object> listFolder(String folderPath) {
+    public final List<String> listFolder(String folderPath, String filters, boolean recursive) throws S3CustomException {
+        LOGGER.log(Level.INFO, "Listing folder contents for: '" + folderPath + "'");
+        int folderPathLength = folderPath.length();
+        List<String> keyResults = new ArrayList<>();
         ArrayList<S3Object> fileObjects = new ArrayList<>();
+
         ListObjectsV2Request req = ListObjectsV2Request.builder()
                 .bucket(this.bucketName)
                 .prefix(folderPath)
                 .build();
-        ListObjectsV2Response res = this.s3.listObjectsV2(req);
-        List<S3Object> objects = res.contents();
-        for (S3Object obj : objects) {
-            if (!obj.key().equals(folderPath)) { fileObjects.add(obj); }
+        ListObjectsV2Response response = this.s3.listObjectsV2(req);
+        List<S3Object> objects = response.contents();
+        boolean extensionFiltering = false;
+        List<String> extFilters = null;
+
+        if (filters != null) {
+            LOGGER.log(Level.INFO, "Using filtering for file extensions: " + filters);
+            // Processing extension string list
+            String[] filtersArray = filters.replaceAll("\\s", "").split(",");
+            extFilters = new ArrayList<>();
+            for (String filter : filtersArray) {
+                extFilters.add(filter.substring(1, filter.length() - 1));
+            }
+            extensionFiltering = true;
         }
-        return fileObjects;
+
+        if (!objects.isEmpty()) {
+            LOGGER.log(Level.INFO, "Object list size = " + objects.size());
+            if (objects.size() > 1) {
+                for (S3Object obj : objects) {
+                    String objKey = obj.key();
+                    if (!objKey.endsWith("/")) {
+                        LOGGER.log(Level.INFO, "Full key: " + objKey);
+                        String filename = objKey.substring(folderPathLength);
+                        LOGGER.log(Level.INFO, "Filename: " + filename);
+                        if (filename.contains("/")) {
+                            if (recursive) {
+                                int subPathLength = filename.lastIndexOf('/');
+                                filename = filename.substring(subPathLength);
+                                LOGGER.log(Level.INFO, "New filename: " + filename);
+                            } else {
+                                LOGGER.log(Level.INFO, "Recursive mode off, skipping");
+                                continue;
+                            }
+                        }
+                        if (extensionFiltering) {
+                            for (String ext : extFilters) {
+                                if (filename.endsWith(ext)) {
+                                    keyResults.add(objKey);
+                                    break;
+                                }
+                            }
+                        } else {
+                            keyResults.add(objKey);
+                        }
+                    }
+                }
+                if (keyResults.isEmpty()) {
+                    LOGGER.log(Level.SEVERE, "No files found with the requested file extensions");
+                    throw new S3CustomException("No files found with the requested file extensions");
+                }
+            } else {
+                LOGGER.log(Level.SEVERE, "The prefix does not match with any actual file. (Empty folder)");
+                throw new S3CustomException("The prefix does not match with any actual file. (Empty folder)");
+            }
+        } else {
+            LOGGER.log(Level.SEVERE, "Prefix/Folder not found. (Object list is empty)");
+            throw new S3CustomException("Prefix/Folder not found.");
+        }
+        return keyResults;
     }
 
     public final void downloadFiles(List<String> fileKeys, String destinationFolder, String folderName) {

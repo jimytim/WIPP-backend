@@ -57,9 +57,11 @@ public class ImagesCollection extends Data {
 
     private String s3BucketName;
     private String s3FolderName;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String s3AccessKeyID;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String s3SecretAccessKey;
-
+    private String s3FileExtensions;
     private String gdriveCode;
     private String gdriveFolderName;
 
@@ -75,33 +77,27 @@ public class ImagesCollection extends Data {
     }
 
     public String getS3FolderName() { return s3FolderName; }
-
     public void setS3FolderName(String s3FolderName) { this.s3FolderName = s3FolderName;}
 
-    @JsonIgnore
     public String getS3AccessKeyID() { return s3AccessKeyID; }
-
     public void setS3AccessKeyID(String s3AccessKeyID) { this.s3AccessKeyID = s3AccessKeyID; }
 
-    @JsonIgnore
     public String getS3SecretAccessKey() { return s3SecretAccessKey;}
-
     public void setS3SecretAccessKey(String s3SecretAccessKey) { this.s3SecretAccessKey = s3SecretAccessKey; }
 
-    public String getGdriveCode() { return gdriveCode; }
+    public String getS3FileExtensions() { return s3FileExtensions; }
+    public void setS3FileExtensions(String s3FileExtensions) { this.s3FileExtensions = s3FileExtensions; }
 
+    public String getGdriveCode() { return gdriveCode; }
     public void setGdriveCode(String gdriveCode) { this.gdriveCode = gdriveCode; }
 
     public String getGdriveFolderName() { return gdriveFolderName; }
-
     public void setGdriveFolderName(String gdriveFolderName) { this.gdriveFolderName = gdriveFolderName; }
 
     public String getGdriveFileExtensions() { return gdriveFileExtensions; }
-
     public void setGdriveFileExtensions(String gdriveFileExtensions) { this.gdriveFileExtensions = gdriveFileExtensions; }
 
     public boolean getGdriveRecursive() { return gdriveRecursive; }
-
     public void setGdriveRecursive(boolean gdriveRecursive) { this.gdriveRecursive = gdriveRecursive; }
 
     private boolean locked;

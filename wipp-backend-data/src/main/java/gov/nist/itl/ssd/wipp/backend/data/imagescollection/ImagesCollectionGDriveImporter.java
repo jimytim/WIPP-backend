@@ -62,6 +62,7 @@ public class ImagesCollectionGDriveImporter {
         boolean success = false;
 
         String imagesCollectionId = imagesCollection.getId();
+        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
 
         try {
 
@@ -70,12 +71,9 @@ public class ImagesCollectionGDriveImporter {
             LOGGER.log(Level.INFO, "Credentials path: " + credential_path);
             LOGGER.log(Level.INFO, "Token directory: " + token_dir_path);
 
-            File downloadFolder = imageHandler.getTempFilesFolder(imagesCollectionId);
-            downloadFolder.mkdirs();
 
-            String user_id = SecurityContextHolder.getContext().getAuthentication().getName();
             String code = imagesCollection.getGdriveCode();
-            userDrive = new GDrive(user_id, code, credential_path, token_dir_path);
+            userDrive = new GDrive(userId, code, credential_path, token_dir_path);
 
             files = userDrive.listFolder(imagesCollection.getGdriveFolderName(),
                                          imagesCollection.getGdriveFileExtensions(),
@@ -96,6 +94,9 @@ public class ImagesCollectionGDriveImporter {
 
         try {
 //            LOGGER.log(Level.INFO, "files: " + files);
+
+            File downloadFolder = imageHandler.getTempFilesFolder(imagesCollectionId);
+            downloadFolder.mkdirs();
 
             for (com.google.api.services.drive.model.File file : files) {
                 String fileName = file.getName();
