@@ -63,7 +63,8 @@ public class ImagesCollection extends Data {
     private String s3SecretAccessKey;
     private String s3FileExtensions;
     private String gdriveCode;
-    private String gdriveFolderName;
+    private GDriveFolderAccessType gdriveFolderAccessType;
+    private String gdriveFolderAccessValue;
 
     private String gdriveFileExtensions;
 
@@ -91,8 +92,10 @@ public class ImagesCollection extends Data {
     public String getGdriveCode() { return gdriveCode; }
     public void setGdriveCode(String gdriveCode) { this.gdriveCode = gdriveCode; }
 
-    public String getGdriveFolderName() { return gdriveFolderName; }
-    public void setGdriveFolderName(String gdriveFolderName) { this.gdriveFolderName = gdriveFolderName; }
+    public GDriveFolderAccessType getGdriveFolderAccessType() { return gdriveFolderAccessType; }
+    public void setGdriveFolderAccessType(GDriveFolderAccessType gdriveFolderAccessType) { this.gdriveFolderAccessType = gdriveFolderAccessType; }
+    public String getGdriveFolderAccessValue() { return gdriveFolderAccessValue; }
+    public void setGdriveFolderAccessValue(String gdriveFolderAccessValue) { this.gdriveFolderAccessValue = gdriveFolderAccessValue; }
 
     public String getGdriveFileExtensions() { return gdriveFileExtensions; }
     public void setGdriveFileExtensions(String gdriveFileExtensions) { this.gdriveFileExtensions = gdriveFileExtensions; }
@@ -260,6 +263,8 @@ public class ImagesCollection extends Data {
 	}
 	
     public enum ImagesCollectionImportMethod {UPLOADED, JOB, CATALOG, BACKEND_IMPORT, S3_IMPORT, GDRIVE_IMPORT}
+
+    public enum GDriveFolderAccessType {PATH, IDURL}
 
 
 }

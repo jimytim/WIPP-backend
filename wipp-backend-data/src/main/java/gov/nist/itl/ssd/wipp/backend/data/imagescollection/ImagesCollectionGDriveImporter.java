@@ -19,6 +19,7 @@ import gov.nist.itl.ssd.wipp.backend.data.imagescollection.images.ImageConversio
 import gov.nist.itl.ssd.wipp.backend.data.imagescollection.images.ImageHandler;
 import gov.nist.itl.ssd.wipp.backend.data.imagescollection.images.ImageRepository;
 import gov.nist.itl.ssd.wipp.backend.data.imagescollection.metadatafiles.MetadataFileHandler;
+import gov.nist.itl.ssd.wipp.backend.data.imagescollection.ImagesCollection.GDriveFolderAccessType;
 import gov.nist.itl.ssd.wipp.backend.data.utils.gdrive.GDriveException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -75,7 +76,29 @@ public class ImagesCollectionGDriveImporter {
             String code = imagesCollection.getGdriveCode();
             userDrive = new GDrive(userId, code, credential_path, token_dir_path);
 
-            files = userDrive.listFolder(imagesCollection.getGdriveFolderName(),
+            // Retrieving the folder's ID
+            GDriveFolderAccessType folderAccessType = imagesCollection.getGdriveFolderAccessType();
+            String folderAccessValue = imagesCollection.getGdriveFolderAccessValue();
+            com.google.api.services.drive.model.File folder = null;
+            if (folderAccessType.equals(GDriveFolderAccessType.PATH)) {
+                String folderPath = imagesCollection.getGdriveFolderAccessValue();
+                LOGGER.log(Level.INFO, "Folder path: " + folderPath);
+                folder = userDrive.solveFolderPath(folderPath);
+                LOGGER.log(Level.INFO, "Folder ID: " + folder.getId());
+            } else if (folderAccessType.equals(GDriveFolderAccessType.IDURL)) {
+                String folderId = null;
+                int lastDelimiterIndex = folderAccessValue.lastIndexOf('/') + 1;
+                if (lastDelimiterIndex != 0) {
+                    folderId = folderAccessValue.substring(lastDelimiterIndex);
+                } else {
+                    folderId = folderAccessValue;
+                }
+                LOGGER.log(Level.INFO, "Folder ID: " + folderId);
+                folder = userDrive.getFileById(folderId);
+            }
+
+            // Listing folder's contents
+            files = userDrive.listFolder(folder,
                                          imagesCollection.getGdriveFileExtensions(),
                                          imagesCollection.getGdriveRecursive());
 

@@ -105,6 +105,8 @@ public class ImagesCollectionS3Importer {
             LOGGER.log(Level.INFO, "Downloading " + fileKeys.size() + " files.");
             for (String key : fileKeys) {
                 LOGGER.log(Level.INFO, "File key: " + key);
+                // TODO: Test -> keep full key as a filename but replace '/' delimiters with another character (like '-')
+//                String fileName = key.replace('/', '-');
                 int subPathLength = key.lastIndexOf('/');
                 String fileName = key.substring(subPathLength + 1);
                 LOGGER.log(Level.INFO, "fileName: " + key);

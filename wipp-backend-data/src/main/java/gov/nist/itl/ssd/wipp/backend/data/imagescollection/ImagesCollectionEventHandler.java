@@ -15,6 +15,7 @@ import gov.nist.itl.ssd.wipp.backend.core.CoreConfig;
 import gov.nist.itl.ssd.wipp.backend.core.rest.exception.ClientException;
 import gov.nist.itl.ssd.wipp.backend.core.rest.exception.NotFoundException;
 import gov.nist.itl.ssd.wipp.backend.data.imagescollection.ImagesCollection.ImagesCollectionImportMethod;
+import gov.nist.itl.ssd.wipp.backend.data.imagescollection.ImagesCollection.GDriveFolderAccessType;
 import gov.nist.itl.ssd.wipp.backend.data.imagescollection.images.ImageHandler;
 import gov.nist.itl.ssd.wipp.backend.data.imagescollection.metadatafiles.MetadataFileHandler;
 
@@ -112,13 +113,25 @@ public class ImagesCollectionEventHandler {
         }
 
         if(imagesCollection.getImportMethod().equals(ImagesCollectionImportMethod.GDRIVE_IMPORT)) {
-            // Check if folder path is not empty
-            String folder = imagesCollection.getGdriveFolderName();
-            if (StringUtils.isEmpty(folder)) {
-                throw new ClientException("Folder path is empty");
-            } else if (folder.contains("\\")) {
-                throw new ClientException("The folder path should not contains escape characters '\\'. Use '/' as a delimiter.");
+            // Check if folder acccess value is not empty
+            GDriveFolderAccessType folderAccessType = imagesCollection.getGdriveFolderAccessType();
+            String folderAccessValue = imagesCollection.getGdriveFolderAccessValue();
+            if (folderAccessType.equals(GDriveFolderAccessType.PATH)) {
+                if (StringUtils.isEmpty(folderAccessValue)) {
+                    throw new ClientException("Folder path is empty");
+                } else if (folderAccessValue.contains("\\")) {
+                    throw new ClientException("The folder path should not contains escape characters '\\'. Use '/' as a delimiter.");
+                }
+            } else if (folderAccessType.equals(GDriveFolderAccessType.IDURL)) {
+                if (StringUtils.isEmpty(folderAccessValue)) {
+                    throw new ClientException("Folder id/url field is empty");
+                } else if (folderAccessValue.contains("\\")) {
+                    throw new ClientException("The folder id/url should not contains escape characters '\\'. Use '/' as a delimiter.");
+                }
+            } else {
+                throw new ClientException("Invalid folder access type: " + folderAccessType);
             }
+
         }
     }
 

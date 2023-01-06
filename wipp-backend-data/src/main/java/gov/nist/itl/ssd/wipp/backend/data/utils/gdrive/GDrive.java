@@ -260,6 +260,20 @@ public class GDrive {
         }
     }
 
+    public File getFileById(String fileID) throws GDriveException {
+        File file = null;
+        try {
+            file = this.service.files().get(fileID).execute();
+        } catch (GoogleJsonResponseException e) {
+            LOGGER.log(Level.SEVERE, "Error while getting the file by ID: " + e.getMessage());
+            throw new GDriveException("No folder found with the provided ID ('" + fileID + "')");
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Error while getting the file by ID: " + e.getMessage());
+            throw new GDriveException("Error while searching the folder by ID.");
+        }
+        return file;
+    }
+
     /**
      * Returns the Google Drive file representing the folder defined in the path provided
      * It iteratively finds each one of its potentials parents following the path until it reaches the leaf folder.
@@ -372,18 +386,18 @@ public class GDrive {
      * provided due to the limitation of the Drive API, as it does not support all mimetypes.
      * The filtering is performed after.
      *
-     * @param folderPath String of the folder's path
+     * @param folder Folder file
      * @param filters String of the files extensions if provided by the user (ex: "'.jpeg', '.png'")
      *                The filtering with the String.endsWith() method for each extensions.
      * @param recursive Flag for the recursive exploration of the folder with its subfolder
      *
      * @return      the Google Drive file list
      */
-    public final List<File> listFolder(String folderPath, String filters, boolean recursive) throws IOException, GDriveException {
-        LOGGER.log(Level.INFO, "Listing folder contents for: '" + folderPath + "'");
+    public final List<File> listFolder(File folder, String filters, boolean recursive) throws IOException, GDriveException {
+        String folderName = folder.getName();
+        LOGGER.log(Level.INFO, "Listing folder contents for: '" + folderName + "'");
         List<File> results = new ArrayList<>();
         List<File> fileList = new ArrayList<>();
-        File folder = this.solveFolderPath(folderPath);
 
         if (recursive) {
             LOGGER.log(Level.INFO, "Using recursive mode.");
@@ -450,8 +464,8 @@ public class GDrive {
             }
 
         } else {
-            LOGGER.log(Level.SEVERE, "No files found in : '" + folderPath + "'");
-            throw new GDriveException("'" + folderPath + "' is empty.");
+            LOGGER.log(Level.SEVERE, "No files found in : '" + folderName + "'");
+            throw new GDriveException("'" + folderName + "' is empty.");
         }
         return results;
     }

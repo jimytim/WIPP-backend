@@ -12,8 +12,6 @@
 
 package gov.nist.itl.ssd.wipp.backend.data.utils.aws;
 
-import com.google.api.services.drive.model.File;
-import gov.nist.itl.ssd.wipp.backend.data.utils.gdrive.GDriveException;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.model.*;
@@ -27,7 +25,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static java.util.stream.Collectors.toList;
 
 
 public class S3 {
